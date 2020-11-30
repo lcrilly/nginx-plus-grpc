@@ -1,0 +1,50 @@
+version: '3'
+
+networks:
+  frontend:
+
+services:
+  nginx_plus:
+    image: nginx-plus:latest
+    volumes:
+      - ./nginx_conf.d:/etc/nginx/conf.d
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+      - "443:443"
+    depends_on:
+      - amex_text
+      - hello_world
+      - route_guide
+    networks:
+      - frontend
+
+  hello_world:
+    build:
+      context: .
+      dockerfile: hello_world.Dockerfile
+    image: grpc_hello_world:latest
+    deploy:
+      replicas: 2
+    networks:
+      - frontend
+
+  amex_text:
+    build:
+      context: ./grpc-k8s-health-check
+      dockerfile: server.Dockerfile
+    image: grpc_amex_text:latest
+    deploy:
+      replicas: 2
+    networks:
+      - frontend
+
+  route_guide:
+    build:
+      context: .
+      dockerfile: route_guide.Dockerfile
+    image: grpc_route_guide:latest
+    deploy:
+      replicas: 2
+    networks:
+      - frontend
